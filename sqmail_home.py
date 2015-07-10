@@ -338,4 +338,4 @@ class SQMail(httplib2.Http):
         myurl = self.url + 'right_main.php?PG_SHOWALL=0&sort=0&startMessage=1&mailbox=INBOX.Sent'
         response, content = self.http.request(myurl, 'GET', headers=self.headers)
         self.sent_msgs = self._get_sent_links(content)
-        return (len(self.new_msgs), len(self.all_msgs), len(self.sent_msgs))
+        #return (len(self.new_msgs), len(self.all_msgs), len(self.sent_msgs))
