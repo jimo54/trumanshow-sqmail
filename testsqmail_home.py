@@ -23,7 +23,7 @@ for agent in agentList:
     passwd = agentList[agent]
     try:
         print 'Spawning thread for ' + agent + '...',
-        thread.start_new_thread( SQMail, (host,user,passwd, ) )
+        thread.start_new_thread( SQMail, (host,user,passwd,True, ) )
         print 'Success!'
     except:
         print 'Error: unable to start thread for ' + agent

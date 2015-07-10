@@ -27,7 +27,7 @@ class SQMail(httplib2.Http):
     send_prob = 0.1
     minDelay = 10
     maxDelay = 30
-    def __init__(self, host, user, password):
+    def __init__(self, host, user, password, run=False):
         'Constructor creates an Squirrelmail user'
         self.host = host
         self.user = user
@@ -39,12 +39,15 @@ class SQMail(httplib2.Http):
         self.roster = self._build_roster()
         self.new_msgs = []
         self.all_msgs = []
-        try:
+        self.sent_msgs = []
+        if run:
             self._run()
-        except:
-            print '******************* KABOOM!!!! *******************'
-            print self.whoami + ' HAS LEFT THE BUILDING!!!!'
-
+        #try:
+        #    self._run()
+        #except Exception, e:
+        #    print '******************* KABOOM!!!! *******************'
+        #    print self.whoami + ' HAS LEFT THE BUILDING!!!!'
+        #    print e
     def _run(self):
         #self.login()
         delay = random.randint(SQMail.minDelay, SQMail.maxDelay)
@@ -69,7 +72,7 @@ class SQMail(httplib2.Http):
                 self.logout()
                 break
             except Exception, e:
-                print 'Whoops!: %s' %e
+                print 'Whoops!: %s' % e
 
     def read_new_msgs(self):
         '"Reads" all unread messages in the user\'s INBOX'
@@ -104,7 +107,7 @@ class SQMail(httplib2.Http):
                 count += 1
         return roster
         
-    def _get_msg_links(self, inbox):
+    def _get_inbox_links(self, inbox):
         'A private method to extract message links from INBOX'
         if self.loggedin == False:
             return None, None
@@ -120,6 +123,17 @@ class SQMail(httplib2.Http):
         for msg in alllist:
             all_msgs.append(msg.replace('&amp;', '&'))
         return new_msgs, all_msgs
+
+    def _get_sent_links(self, mailbox):
+        'A private method to extract message links from INBOX.Sent'
+        if self.loggedin == False:
+            return None
+        sent_msgs = []
+        p = re.compile('read_body.php\?mailbox=INBOX.Sent&amp;passed_id\=[0-9]+&amp;startMessage=1', re.IGNORECASE)
+        sentlist = p.findall(mailbox)
+        for msg in sentlist:
+            sent_msgs.append(msg.replace('&amp;', '&'))
+        return sent_msgs
     
     def _build_headers(self, cookie=None, login=False):
         'Private method to build client\'s HTTP headers'
@@ -184,7 +198,13 @@ class SQMail(httplib2.Http):
             print 'Error: Not logged in!'
 
     def del_all_msgs(self):
-        'Deletes all messages in the user\'s INBOX'
+        '''Deletes all messages in the user\'s in and sent mailboxes--
+        but just from the page, a maximum of 15 messages each. The
+        default is to call this method when either mailbox contains
+        10 or more messages, so this shouldn't be a problem.
+        '''
+        # Put all our eggs in one basket
+        self.all_msgs += self.sent_msgs
         if len(self.all_msgs) == 0 or self.loggedin == False:
             return
         try:
@@ -204,7 +224,7 @@ class SQMail(httplib2.Http):
             purgeurl = self.url + 'empty_trash.php?' + smtoken
             response, content = self.http.request(purgeurl, 'GET', headers=self.headers)
         except:
-            print 'Error clearing inbox!'
+            print 'Error clearing inbox:', e
 
     def send_msg(self,sendTo,subject=None,msgBody=None):
         'Sends an email message to sendTo addressee' 
@@ -311,5 +331,11 @@ class SQMail(httplib2.Http):
             response, content = self.http.request(myurl, 'GET', headers=self.headers)
             if src == 'right_main.php':
                 inbox = content
-        self.new_msgs, self.all_msgs = self._get_msg_links(inbox)
-        return (len(self.new_msgs), len(self.all_msgs))
+        self.new_msgs, self.all_msgs = self._get_inbox_links(inbox)
+        #return (len(self.new_msgs), len(self.all_msgs))
+        #
+        # Now do the same for the SENT mailbox
+        myurl = self.url + 'right_main.php?PG_SHOWALL=0&sort=0&startMessage=1&mailbox=INBOX.Sent'
+        response, content = self.http.request(myurl, 'GET', headers=self.headers)
+        self.sent_msgs = self._get_sent_links(content)
+        return (len(self.new_msgs), len(self.all_msgs), len(self.sent_msgs))
