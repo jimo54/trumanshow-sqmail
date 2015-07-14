@@ -9,7 +9,7 @@
 #       Run setup program:
 #          sudo python setup.py install
 ###########################
-import thread, time
+import threading, time
 from sqmail_home import SQMail
 
 server1 = 'elko.26maidenlane.net'
@@ -22,20 +22,11 @@ for agent in agentList:
     user, host = agent.split('@')
     passwd = agentList[agent]
     try:
-        print 'Spawning thread for ' + agent + '...',
-        thread.start_new_thread( SQMail, (host,user,passwd,True, ) )
-        print 'Success!'
-    except:
-        print 'Error: unable to start thread for ' + agent
+        print('Spawning thread for ' + agent + '...', end='')
+        agent = threading.Thread(target=SQMail, args=(host,user,passwd,True,))
+        agent.start()
+        print ('success!')
+    except Exception as e:
+        print ('Error: unable to start thread for ' + agent + ':', e)
 while True:
     time.sleep(30)
-    #if len(ChatAgent.crashed) > 0:
-    #    for i in ChatAgent.crashed:
-    #        try:
-    #            print 'Respawning thread for ' + i + '...',
-    #            thread.start_new_thread( ChatAgent, (i, agentList[i], ) )
-    #            print 'Success!'
-    #        except:
-    #            print 'Error: unable to restart thread for ' + i
-    #        ChatAgent.crashed.remove(i)
-    #pass

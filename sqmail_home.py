@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os, sys, re, socket, time, random
-import urllib, httplib2
+import httplib2
+from urllib.parse import urlencode
 from loremipsum import get_sentences
 ###########################
 # This script requires the fortune-mod package to be installed
@@ -44,10 +45,10 @@ class SQMail(httplib2.Http):
             self._run()
         #try:
         #    self._run()
-        #except Exception, e:
-        #    print '******************* KABOOM!!!! *******************'
-        #    print self.whoami + ' HAS LEFT THE BUILDING!!!!'
-        #    print e
+        #except Exception as e:
+        #    print('******************* KABOOM!!!! *******************')
+        #    print(self.whoami + ' HAS LEFT THE BUILDING!!!!')
+        #    print(e)
     def _run(self):
         #self.login()
         delay = random.randint(SQMail.minDelay, SQMail.maxDelay)
@@ -66,19 +67,19 @@ class SQMail(httplib2.Http):
                     self.read_new_msgs()
                     to = random.choice(self.roster)
                     self.send_msg(to)
-                    print time.strftime("%H:%M:%S") + ': ' + self.whoami + ' sent email to', to
+                    print(time.strftime("%H:%M:%S") + ': ' + self.whoami + ' sent email to', to)
             except KeyboardInterrupt:
-                print self.whoami + ' logging out...'
+                print(self.whoami + ' logging out...')
                 self.logout()
                 break
-            except Exception, e:
-                print 'Whoops!: %s' % e
+            except Exception as e:
+                print('Whoops!: %s' % e)
 
     def read_new_msgs(self):
         '"Reads" all unread messages in the user\'s INBOX'
         if len(self.new_msgs) == 0 or self.loggedin == False:
             return
-        print time.strftime("%H:%M:%S") + ': ' + self.whoami + ' is reading new messages'
+        print(time.strftime("%H:%M:%S") + ': ' + self.whoami + ' is reading new messages.')
         for msg in self.new_msgs:
             myurl = self.url + msg
             response, content = self.http.request(myurl, 'GET', headers=self.headers)
@@ -96,7 +97,7 @@ class SQMail(httplib2.Http):
             self.new_msgs.remove(msg)        
 
     def _build_roster(self):
-        allUsers = SQMail.accounts.keys()
+        allUsers = list(SQMail.accounts.keys())
         roster = []
         max = random.randint(4,9)
         count = 0
@@ -107,10 +108,11 @@ class SQMail(httplib2.Http):
                 count += 1
         return roster
         
-    def _get_inbox_links(self, inbox):
+    def _get_inbox_links(self, inboxlinks):
         'A private method to extract message links from INBOX'
         if self.loggedin == False:
             return None, None
+        inbox = inboxlinks.decode()
         all_msgs = []
         new_msgs = []
         p1 = re.compile('<b><a href=\"read_body.php\?mailbox=INBOX&amp;passed_id\=[0-9]+&amp;startMessage=1', re.IGNORECASE)
@@ -124,10 +126,11 @@ class SQMail(httplib2.Http):
             all_msgs.append(msg.replace('&amp;', '&'))
         return new_msgs, all_msgs
 
-    def _get_sent_links(self, mailbox):
+    def _get_sent_links(self, mailboxlinks):
         'A private method to extract message links from INBOX.Sent'
         if self.loggedin == False:
             return None
+        mailbox = mailboxlinks.decode()
         sent_msgs = []
         p = re.compile('read_body.php\?mailbox=INBOX.Sent&amp;passed_id\=[0-9]+&amp;startMessage=1', re.IGNORECASE)
         sentlist = p.findall(mailbox)
@@ -142,7 +145,7 @@ class SQMail(httplib2.Http):
             headers['Referer']= self.url + 'login.php'
             headers['Cookie'] = cookie
         headers['Connection'] = 'keep-alive'
-        # urlencoded is just for POST
+        # urlencode is just for POST
         if login:
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         return headers
@@ -173,12 +176,13 @@ class SQMail(httplib2.Http):
         body["just_logged_in"] = "1"
         return body
     
-    def _get_src_files(self, content = None):
+    def _get_src_files(self, contentpage = None):
         'Private method to find internal links'
         if self.loggedin == False:
             return None
-        if content == None:
+        if contentpage == None:
             return None
+        content = contentpage.decode()
         p1 = re.compile('src=[^ ]* ', re.IGNORECASE)
         imageList = []
         images = p1.findall(content)
@@ -195,7 +199,7 @@ class SQMail(httplib2.Http):
             response, content = self.http.request(myurl, 'GET', headers=self.headers)
             self.loggedin = False
         else:
-            print 'Error: Not logged in!'
+            print('Error: Not logged in!')
 
     def del_all_msgs(self):
         '''Deletes all messages in the user\'s in and sent mailboxes--
@@ -208,10 +212,11 @@ class SQMail(httplib2.Http):
         if len(self.all_msgs) == 0 or self.loggedin == False:
             return
         try:
-            print time.strftime("%H:%M:%S") + ': ' + self.whoami + ' is clearing inbox'
+            print(time.strftime("%H:%M:%S") + ': ' + self.whoami + ' is clearing inbox.')
             for msg in self.all_msgs:
                 myurl = self.url + msg
-                response, content = self.http.request(myurl, 'GET', headers=self.headers)
+                response, contentpage = self.http.request(myurl, 'GET', headers=self.headers)
+                content = contentpage.decode()
                 p1 = re.compile('delete_message.php[^"\r\n]+startMessage=1', re.IGNORECASE)
                 hit = p1.findall(content)
                 if hit != None:
@@ -223,8 +228,8 @@ class SQMail(httplib2.Http):
             self.all_msgs = []
             purgeurl = self.url + 'empty_trash.php?' + smtoken
             response, content = self.http.request(purgeurl, 'GET', headers=self.headers)
-        except:
-            print 'Error clearing inbox:', e
+        except Exception as e:
+            print('Error clearing inbox:', e)
 
     def send_msg(self,sendTo,subject=None,msgBody=None):
         'Sends an email message to sendTo addressee' 
@@ -232,11 +237,12 @@ class SQMail(httplib2.Http):
             return
         # Get the compose form, which provides required smtoken value
         myurl = self.url + 'compose.php?mailbox=INBOX&startMessage=1'
-        response, content = self.http.request(myurl, 'GET', headers=self.headers)
+        response, contentpage = self.http.request(myurl, 'GET', headers=self.headers)
         # Build the request body by extracting the needed
         # form fields and values. A few included squirrelmail
         # features aren't handled here, including the delivered
         # and read confirmations
+        content = contentpage.decode()
         p1 = re.compile('type.+value="[^"]*"', re.IGNORECASE)
         fields = p1.findall(content)
         body = {}
@@ -278,12 +284,12 @@ class SQMail(httplib2.Http):
         # NOTE: This is just a quick workaround. It's not going
         # to handle file uploads
         headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        response, content = self.http.request(myurl, 'POST', headers=self.headers, body=urllib.urlencode(body))
+        response, content = self.http.request(myurl, 'POST', headers=self.headers, body=urlencode(body))
         # A successful send will get us a 302, to send us back to the INBOX
         try:
             location = response['location']
         except KeyError:
-            print "Error: Message send failed"
+            print ("Error: Message send failed.")
             return
         myurl = location
         response, content = self.http.request(myurl, 'GET', headers=self.headers)
@@ -293,10 +299,10 @@ class SQMail(httplib2.Http):
         try:
             response, content = self.http.request(self.url, 'GET')
         except socket.error:
-            print 'Error: No response from Web server at ' + self.host
+            print('Error: No response from Web server at ' + self.host + '.')
             return
         if response['status'] != '200':
-            print 'Error: Squirrelmail not found at ' + self.host
+            print('Error: Squirrelmail not found at ' + self.host + '.')
             return
         # Get cookies from server response
         cookie = self._build_cookie(response)
@@ -307,14 +313,14 @@ class SQMail(httplib2.Http):
         # using the various POST variables
         body = self._build_login_body()
         # Submit the login form
-        response, content = self.http.request(myurl, 'POST', headers=self.headers, body=urllib.urlencode(body))
+        response, content = self.http.request(myurl, 'POST', headers=self.headers, body=urlencode(body))
         # A successful login returns a 302, so follow it
         # if that's what we get back
         try:
             location = response['location']
             self.loggedin = True
         except KeyError:
-            print "Error: Login attempt failed"
+            print("Error: Login attempt failed.")
             return
         # On successful login, need to get new cookie, with key,
         # from the server response and replace in the HTTP headers
