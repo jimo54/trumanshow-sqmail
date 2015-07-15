@@ -1,35 +1,32 @@
 #!/usr/bin/env python
 import os, sys, re, socket, time, random
-import httplib2
+import httplib2, threading
 from urllib.parse import urlencode
 from loremipsum import get_sentences
-###########################
-# This script requires the fortune-mod package to be installed
-# on the local system:
-#    sudo apt-get install fortune-mod
-# To use Lorem ipsum sentence generator:
-#    Install setuptools:
-#       (For Python 2) sudo apt-get install python-setuptools
-#       (For Python 3) sudo apt-get install python3-setuptools
-#    Go to: https://pypi.python.org/pypi/loremipsum/
-#       Download the tar ball
-#       Extract and cd into new directory
-#       Run setup program:
-#          (For Python 2) sudo python setup.py install
-#          (For Python 3) sudo python3 setup.py install
-###########################
+####################################################################
+# This script requires the fortune-mod package to be installed     #
+# on the local system:                                             #
+#    sudo apt-get install fortune-mod                              #
+# To use Lorem ipsum sentence generator:                           #
+#    Install setuptools:                                           #
+#       (For Python 2) sudo apt-get install python-setuptools      #
+#       (For Python 3) sudo apt-get install python3-setuptools     #
+#    Go to: https://pypi.python.org/pypi/loremipsum/               #
+#       Download the tar ball                                      #
+#       Extract and cd into new directory                          #
+#       Run setup program:                                         #
+#          (For Python 2) sudo python setup.py install             #
+#          (For Python 3) sudo python3 setup.py install            #
+####################################################################
 
-server1 = 'elko.26maidenlane.net'
-server2 = 'redding.26maidenlane.net'
-
-class SQMail(httplib2.Http):
+class SQMail(threading.Thread):
     'A class that interacts with a Squirrelmail email app server'
-    accounts = {'ella@' + server1: 'afwtl7j4', 'daniel@' + server1: 'uutg3zbt', 'sophia@' + server1: 'famwzxe2', 'chloe@' + server2: 'ht9czbxz', 'william@' + server2: '3hkkp8xt', 'charlotte@' + server1: '6bgkmjfn', 'natalie@' + server1: 'uc4r5ck8', 'james@' + server2: 'buahehfk', 'jacob@' + server2: 'sgwnd9km', 'zoey@' + server2: 'qndjgbt3', 'andrew@' + server1: 'uakmbr33', 'joshua@' + server2: 'nse9jg4k', 'evelyn@' + server2: '88ctr5py', 'emma@' + server2: 'kbsemhzg', 'mason@' + server1: 'kmmfvqva', 'elijah@' + server2: 'drtkybpu', 'ethan@' + server1: 'wnz7s7gr', 'aiden@' + server1: 'ngcy4zvy', 'jackson@' + server1: 's79jvucp', 'ava@' + server1: 'ftgadqvl', 'madison@' + server1: 'kkgez8uy', 'samuel@' + server2: '6bfdzq76', 'jayden@' + server2: 'veynzak6', 'benjamin@' + server1: '2ekvwjp7', 'gabriel@' + server1: 'rdqp9qsq', 'avery@' + server2: 'pzljljjh', 'logan@' + server2: 'd8hlynaq', 'aubrey@' + server2: 'u36fnreq', 'grace@' + server2: 'zsxhwdhj', 'hannah@' + server1: 'bagjms6a', 'joseph@' + server1: 'xutxehdd', 'victoria@' + server1: 'pttktw42', 'mia@' + server2: 'uysjzwdr', 'anthony@' + server2: 'ntwqhace', 'harper@' + server2: 'vyx4uaz7', 'david@' + server1: 'a22q6drp', 'olivia@' + server1: 'ryex5cw2', 'sofia@' + server1: 'eyvwbunb', 'abigail@' + server2: 'rlez4xd8', 'lucas@' + server2: '2hpa92zw', 'liam@' + server1: '7nfun5em', 'alexander@' + server1: '6tvmhfu6', 'emily@' + server1: 'zha7utjl', 'matthew@' + server2: 'vdcukvuk', 'noah@' + server2: 'f7eclstk', 'isabella@' + server2: 'ruftsefb', 'michael@' + server2: 'abpwlsud', 'amelia@' + server1: '2d9hvmkp', 'elizabeth@' + server2: 'asdjswcv', 'addison@' + server1: 'yytezmrb'}
     send_prob = 0.1
     minDelay = 10
     maxDelay = 30
     def __init__(self, host, user, password, run=False):
         'Constructor creates an Squirrelmail user'
+        super().__init__()
         self.host = host
         self.user = user
         self.whoami = user + '@' + host
@@ -41,22 +38,14 @@ class SQMail(httplib2.Http):
         self.new_msgs = []
         self.all_msgs = []
         self.sent_msgs = []
-        if run:
-            self._run()
-        #try:
-        #    self._run()
-        #except Exception as e:
-        #    print('******************* KABOOM!!!! *******************')
-        #    print(self.whoami + ' HAS LEFT THE BUILDING!!!!')
-        #    print(e)
-    def _run(self):
-        #self.login()
+
+    def run(self):
         delay = random.randint(SQMail.minDelay, SQMail.maxDelay)
-        while True:
+        while not shutdown_event.is_set():
             try:
                 self.login()
                 if len(self.all_msgs) > 0:
-                    if len(self.all_msgs) > 5:
+                    if len(self.all_msgs) > 10:
                         self.del_all_msgs()
                     else:
                         self.read_msg()
@@ -68,12 +57,11 @@ class SQMail(httplib2.Http):
                     to = random.choice(self.roster)
                     self.send_msg(to)
                     print(time.strftime("%H:%M:%S") + ': ' + self.whoami + ' sent email to', to)
-            except KeyboardInterrupt:
-                print(self.whoami + ' logging out...')
-                self.logout()
-                break
             except Exception as e:
                 print('Whoops!: %s' % e)
+        print(self.whoami + ' logging out...', end='')
+        self.logout()
+        print('bye!')
 
     def read_new_msgs(self):
         '"Reads" all unread messages in the user\'s INBOX'
@@ -97,7 +85,7 @@ class SQMail(httplib2.Http):
             self.new_msgs.remove(msg)        
 
     def _build_roster(self):
-        allUsers = list(SQMail.accounts.keys())
+        allUsers = list(agentList.keys())
         roster = []
         max = random.randint(4,9)
         count = 0
@@ -269,7 +257,6 @@ class SQMail(httplib2.Http):
         else:
             body['body'] = msgBody
         if sendTo == None:
-            #body['send_to'] = 'jim@' + server1
             body['send_to'] = random.choice(self.roster)
         else:
             body['send_to'] = sendTo
@@ -338,10 +325,38 @@ class SQMail(httplib2.Http):
             if src == 'right_main.php':
                 inbox = content
         self.new_msgs, self.all_msgs = self._get_inbox_links(inbox)
-        #return (len(self.new_msgs), len(self.all_msgs))
-        #
         # Now do the same for the SENT mailbox
         myurl = self.url + 'right_main.php?PG_SHOWALL=0&sort=0&startMessage=1&mailbox=INBOX.Sent'
         response, content = self.http.request(myurl, 'GET', headers=self.headers)
         self.sent_msgs = self._get_sent_links(content)
-        #return (len(self.new_msgs), len(self.all_msgs), len(self.sent_msgs))
+
+
+if __name__ == '__main__':
+    server1 = 'elko.26maidenlane.net'
+    server2 = 'redding.26maidenlane.net'
+    agentList = {'hannah@'+server1: 'bagjms6a', 'ella@'+server1: 'afwtl7j4', 'joseph@'+server1: 'xutxehdd', 'ava@'+server1: 'ftgadqvl', 'victoria@'+server1: 'pttktw42', 'sophia@'+server1: 'famwzxe2', 'zoey@'+server2: 'qndjgbt3', 'liam@'+server1: '7nfun5em', 'charlotte@'+server1: '6bgkmjfn', 'natalie@'+server1: 'uc4r5ck8', 'michael@'+server2: 'abpwlsud', 'isabella@'+server2: 'ruftsefb', 'david@'+server1: 'a22q6drp', 'olivia@'+server1: 'ryex5cw2', 'chloe@'+server2: 'ht9czbxz', 'joshua@'+server2: 'nse9jg4k', 'logan@'+server2: 'd8hlynaq', 'lucas@'+server2: '2hpa92zw', 'emma@'+server2: 'kbsemhzg', 'daniel@'+server1: 'uutg3zbt', 'abigail@'+server2: 'rlez4xd8', 'andrew@'+server1: 'uakmbr33', 'william@'+server2: '3hkkp8xt', 'elijah@'+server2: 'drtkybpu', 'sofia@'+server1: 'eyvwbunb', 'james@'+server2: 'buahehfk', 'alexander@'+server1: '6tvmhfu6', 'anthony@'+server2: 'ntwqhace', 'grace@'+server2: 'zsxhwdhj', 'ethan@'+server1: 'wnz7s7gr', 'aiden@'+server1: 'ngcy4zvy', 'emily@'+server1: 'zha7utjl', 'jackson@'+server1: 's79jvucp', 'addison@'+server1: 'yytezmrb', 'aubrey@'+server2: 'u36fnreq', 'jayden@'+server2: 'veynzak6', 'madison@'+server1: 'kkgez8uy', 'mia@'+server2: 'uysjzwdr', 'harper@'+server2: 'vyx4uaz7', 'mason@'+server1: 'kmmfvqva', 'benjamin@'+server1: '2ekvwjp7', 'gabriel@'+server1: 'rdqp9qsq', 'amelia@'+server1: '2d9hvmkp', 'jacob@'+server2: 'sgwnd9km', 'evelyn@'+server2: '88ctr5py', 'elizabeth@'+server2: 'asdjswcv', 'avery@'+server2: 'pzljljjh', 'samuel@'+server2: '6bfdzq76', 'noah@'+server2: 'f7eclstk', 'matthew@'+server2: 'vdcukvuk'}
+
+    # Loop control variable; turns True
+    # when Ctrl-c is pressed
+    done = False
+    # Here's the signal to threads
+    # that it's time to log out and exit
+    shutdown_event = threading.Event()
+    # Create some agent threads
+    for agent in agentList:
+        user, host = agent.split('@')
+        passwd = agentList[agent]
+        try:
+            print('Spawning thread for ' + agent + '...', end='')
+            agent = SQMail(host, user, passwd, True)
+            print('success!')
+            agent.start()
+        except Exception as e:
+            print ('Error: unable to start thread for ' + agent + ':', e)
+            sys.exit(1)
+    while not done:
+        try:
+            time.sleep(30)
+        except (KeyboardInterrupt, SystemExit):
+            shutdown_event.set()
+            done = True
