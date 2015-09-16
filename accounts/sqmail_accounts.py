@@ -15,7 +15,7 @@ import pickle
 # What are the names of the mail servers?
 servers = ['elko.26maidenlane.net','redding.26maidenlane.net']
 # How many accounts per server (left-to-right)?
-num_accounts = [50, 50]
+num_accounts = [25, 25]
 # How long should account passwords be?
 password_length = 8
 
@@ -71,7 +71,6 @@ if __name__=='__main__':
     if len(names):
         passwords = make_passwords(sum(num_accounts), password_length)
         accts = make_accounts(names, passwords, num_accounts, servers)
-        pickle.dump( accts, open( "xmpp_accounts.p", "wb" ) )
+        pickle.dump( accts, open( "sqmail_accounts.p", "wb" ) )
         print('Created a total of', len(accts), 'accounts')
-        print('Dictionary of accounts saved to file "./xmpp_accounts.p"')
-
+        print('Dictionary of accounts saved to file "./sqmail_accounts.p"')
