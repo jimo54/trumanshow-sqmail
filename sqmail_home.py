@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, sys, re, socket, time, random
-import httplib2
+import httplib2, pickle
 from urllib.parse import urlencode
 from loremipsum import get_sentences
 ###########################
@@ -19,12 +19,23 @@ from loremipsum import get_sentences
 #          (For Python 3) sudo python3 setup.py install
 ###########################
 
-server1 = 'elko.26maidenlane.net'
-server2 = 'redding.26maidenlane.net'
+#server1 = 'elko.26maidenlane.net'
+#server2 = 'redding.26maidenlane.net'
 
 class SQMail(httplib2.Http):
     'A class that interacts with a Squirrelmail email app server'
-    accounts = {'ella@' + server1: 'afwtl7j4', 'daniel@' + server1: 'uutg3zbt', 'sophia@' + server1: 'famwzxe2', 'chloe@' + server2: 'ht9czbxz', 'william@' + server2: '3hkkp8xt', 'charlotte@' + server1: '6bgkmjfn', 'natalie@' + server1: 'uc4r5ck8', 'james@' + server2: 'buahehfk', 'jacob@' + server2: 'sgwnd9km', 'zoey@' + server2: 'qndjgbt3', 'andrew@' + server1: 'uakmbr33', 'joshua@' + server2: 'nse9jg4k', 'evelyn@' + server2: '88ctr5py', 'emma@' + server2: 'kbsemhzg', 'mason@' + server1: 'kmmfvqva', 'elijah@' + server2: 'drtkybpu', 'ethan@' + server1: 'wnz7s7gr', 'aiden@' + server1: 'ngcy4zvy', 'jackson@' + server1: 's79jvucp', 'ava@' + server1: 'ftgadqvl', 'madison@' + server1: 'kkgez8uy', 'samuel@' + server2: '6bfdzq76', 'jayden@' + server2: 'veynzak6', 'benjamin@' + server1: '2ekvwjp7', 'gabriel@' + server1: 'rdqp9qsq', 'avery@' + server2: 'pzljljjh', 'logan@' + server2: 'd8hlynaq', 'aubrey@' + server2: 'u36fnreq', 'grace@' + server2: 'zsxhwdhj', 'hannah@' + server1: 'bagjms6a', 'joseph@' + server1: 'xutxehdd', 'victoria@' + server1: 'pttktw42', 'mia@' + server2: 'uysjzwdr', 'anthony@' + server2: 'ntwqhace', 'harper@' + server2: 'vyx4uaz7', 'david@' + server1: 'a22q6drp', 'olivia@' + server1: 'ryex5cw2', 'sofia@' + server1: 'eyvwbunb', 'abigail@' + server2: 'rlez4xd8', 'lucas@' + server2: '2hpa92zw', 'liam@' + server1: '7nfun5em', 'alexander@' + server1: '6tvmhfu6', 'emily@' + server1: 'zha7utjl', 'matthew@' + server2: 'vdcukvuk', 'noah@' + server2: 'f7eclstk', 'isabella@' + server2: 'ruftsefb', 'michael@' + server2: 'abpwlsud', 'amelia@' + server1: '2d9hvmkp', 'elizabeth@' + server2: 'asdjswcv', 'addison@' + server1: 'yytezmrb'}
+    #accounts = {'ella@' + server1: 'afwtl7j4', 'daniel@' + server1: 'uutg3zbt', 'sophia@' + server1: 'famwzxe2', 'chloe@' + server2: 'ht9czbxz', 'william@' + server2: '3hkkp8xt', 'charlotte@' + server1: '6bgkmjfn', 'natalie@' + server1: 'uc4r5ck8', 'james@' + server2: 'buahehfk', 'jacob@' + server2: 'sgwnd9km', 'zoey@' + server2: 'qndjgbt3', 'andrew@' + server1: 'uakmbr33', 'joshua@' + server2: 'nse9jg4k', 'evelyn@' + server2: '88ctr5py', 'emma@' + server2: 'kbsemhzg', 'mason@' + server1: 'kmmfvqva', 'elijah@' + server2: 'drtkybpu', 'ethan@' + server1: 'wnz7s7gr', 'aiden@' + server1: 'ngcy4zvy', 'jackson@' + server1: 's79jvucp', 'ava@' + server1: 'ftgadqvl', 'madison@' + server1: 'kkgez8uy', 'samuel@' + server2: '6bfdzq76', 'jayden@' + server2: 'veynzak6', 'benjamin@' + server1: '2ekvwjp7', 'gabriel@' + server1: 'rdqp9qsq', 'avery@' + server2: 'pzljljjh', 'logan@' + server2: 'd8hlynaq', 'aubrey@' + server2: 'u36fnreq', 'grace@' + server2: 'zsxhwdhj', 'hannah@' + server1: 'bagjms6a', 'joseph@' + server1: 'xutxehdd', 'victoria@' + server1: 'pttktw42', 'mia@' + server2: 'uysjzwdr', 'anthony@' + server2: 'ntwqhace', 'harper@' + server2: 'vyx4uaz7', 'david@' + server1: 'a22q6drp', 'olivia@' + server1: 'ryex5cw2', 'sofia@' + server1: 'eyvwbunb', 'abigail@' + server2: 'rlez4xd8', 'lucas@' + server2: '2hpa92zw', 'liam@' + server1: '7nfun5em', 'alexander@' + server1: '6tvmhfu6', 'emily@' + server1: 'zha7utjl', 'matthew@' + server2: 'vdcukvuk', 'noah@' + server2: 'f7eclstk', 'isabella@' + server2: 'ruftsefb', 'michael@' + server2: 'abpwlsud', 'amelia@' + server1: '2d9hvmkp', 'elizabeth@' + server2: 'asdjswcv', 'addison@' + server1: 'yytezmrb'}
+    # The list of sqmail agents is created by a script in
+    # the accounts directory, named sqmail_accounts.py. This
+    # script then stores a Python dictionary of email addresses
+    # and their associated passwords in a Python pickle
+    # file: accounts/sqmail_accounts.p.
+    try:
+        accounts = pickle.load(open('accounts/sqmail_accounts.p', 'rb'))
+    except Exception as e:
+        print('Error: Can\'t open and/or read accounts/sqmail_accounts.p', e)
+        sys.exit(1)
+                        
     send_prob = 0.1
     minDelay = 10
     maxDelay = 30
@@ -43,14 +54,8 @@ class SQMail(httplib2.Http):
         self.sent_msgs = []
         if run:
             self._run()
-        #try:
-        #    self._run()
-        #except Exception as e:
-        #    print('******************* KABOOM!!!! *******************')
-        #    print(self.whoami + ' HAS LEFT THE BUILDING!!!!')
-        #    print(e)
+            
     def _run(self):
-        #self.login()
         delay = random.randint(SQMail.minDelay, SQMail.maxDelay)
         while True:
             try:

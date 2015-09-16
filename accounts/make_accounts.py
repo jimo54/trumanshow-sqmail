@@ -26,4 +26,4 @@ for server in servers:
         user = str(account).split('@')[0]
         domain = str(account).split('@')[1]
         if domain == server:
-            print('sudo adduser --disabled-password ' + user + "; echo '" + user + ":" + accounts[account] + "' | sudo chpasswd")
+            print('sudo adduser --gecos "' + user + '" --disabled-password ' + user + "; echo '" + user + ":" + accounts[account] + "' | sudo chpasswd")
