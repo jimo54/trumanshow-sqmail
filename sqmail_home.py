@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys, re, socket, time, random
+import os, sys, re, socket, time, random, logging, threading
 import httplib2, pickle
 from urllib.parse import urlencode
 from loremipsum import get_sentences
@@ -19,12 +19,8 @@ from loremipsum import get_sentences
 #          (For Python 3) sudo python3 setup.py install
 ###########################
 
-#server1 = 'elko.26maidenlane.net'
-#server2 = 'redding.26maidenlane.net'
-
-class SQMail(httplib2.Http):
+class SQMail(httplib2.Http, threading.Thread):
     'A class that interacts with a Squirrelmail email app server'
-    #accounts = {'ella@' + server1: 'afwtl7j4', 'daniel@' + server1: 'uutg3zbt', 'sophia@' + server1: 'famwzxe2', 'chloe@' + server2: 'ht9czbxz', 'william@' + server2: '3hkkp8xt', 'charlotte@' + server1: '6bgkmjfn', 'natalie@' + server1: 'uc4r5ck8', 'james@' + server2: 'buahehfk', 'jacob@' + server2: 'sgwnd9km', 'zoey@' + server2: 'qndjgbt3', 'andrew@' + server1: 'uakmbr33', 'joshua@' + server2: 'nse9jg4k', 'evelyn@' + server2: '88ctr5py', 'emma@' + server2: 'kbsemhzg', 'mason@' + server1: 'kmmfvqva', 'elijah@' + server2: 'drtkybpu', 'ethan@' + server1: 'wnz7s7gr', 'aiden@' + server1: 'ngcy4zvy', 'jackson@' + server1: 's79jvucp', 'ava@' + server1: 'ftgadqvl', 'madison@' + server1: 'kkgez8uy', 'samuel@' + server2: '6bfdzq76', 'jayden@' + server2: 'veynzak6', 'benjamin@' + server1: '2ekvwjp7', 'gabriel@' + server1: 'rdqp9qsq', 'avery@' + server2: 'pzljljjh', 'logan@' + server2: 'd8hlynaq', 'aubrey@' + server2: 'u36fnreq', 'grace@' + server2: 'zsxhwdhj', 'hannah@' + server1: 'bagjms6a', 'joseph@' + server1: 'xutxehdd', 'victoria@' + server1: 'pttktw42', 'mia@' + server2: 'uysjzwdr', 'anthony@' + server2: 'ntwqhace', 'harper@' + server2: 'vyx4uaz7', 'david@' + server1: 'a22q6drp', 'olivia@' + server1: 'ryex5cw2', 'sofia@' + server1: 'eyvwbunb', 'abigail@' + server2: 'rlez4xd8', 'lucas@' + server2: '2hpa92zw', 'liam@' + server1: '7nfun5em', 'alexander@' + server1: '6tvmhfu6', 'emily@' + server1: 'zha7utjl', 'matthew@' + server2: 'vdcukvuk', 'noah@' + server2: 'f7eclstk', 'isabella@' + server2: 'ruftsefb', 'michael@' + server2: 'abpwlsud', 'amelia@' + server1: '2d9hvmkp', 'elizabeth@' + server2: 'asdjswcv', 'addison@' + server1: 'yytezmrb'}
     # The list of sqmail agents is created by a script in
     # the accounts directory, named sqmail_accounts.py. This
     # script then stores a Python dictionary of email addresses
@@ -33,18 +29,21 @@ class SQMail(httplib2.Http):
     try:
         accounts = pickle.load(open('accounts/sqmail_accounts.p', 'rb'))
     except Exception as e:
-        print('Error: Can\'t open and/or read accounts/sqmail_accounts.p', e)
+        logger.critical('Error: Can\'t open and/or read accounts/sqmail_accounts.p ' + str(e))
         sys.exit(1)
                         
     send_prob = 0.1
     minDelay = 10
     maxDelay = 30
-    def __init__(self, host, user, password, run=False):
+    def __init__(self, host, user, password, logger, group=None, run=False):
         'Constructor creates an Squirrelmail user'
+        threading.Thread.__init__(self, group=None)
         self.host = host
         self.user = user
         self.whoami = user + '@' + host
         self.password = password
+        self.logger = logger
+        self.stopEvent = threading.Event()
         self.http = httplib2.Http()
         self.url = 'http://' + host + '/squirrelmail/src/'
         self.loggedin = False
@@ -52,12 +51,17 @@ class SQMail(httplib2.Http):
         self.new_msgs = []
         self.all_msgs = []
         self.sent_msgs = []
-        if run:
-            self._run()
-            
-    def _run(self):
+
+    def stop(self):
+        # stop is sent by caller when Ctrl-c is pressed
+        self.stopEvent.set()
+        self.logger.info(self.whoami + ': Stop event has been set')
+        
+    def run(self):
         delay = random.randint(SQMail.minDelay, SQMail.maxDelay)
-        while True:
+        # stopEvent is sent by caller when Ctrl-c is pressed
+        # See the method above
+        while not self.stopEvent.is_set():
             try:
                 self.login()
                 if len(self.all_msgs) > 0:
@@ -65,26 +69,24 @@ class SQMail(httplib2.Http):
                         self.del_all_msgs()
                     else:
                         self.read_msg()
-                time.sleep(delay)
-                r = random.randint(1,101)
-                p = int(1 / SQMail.send_prob)
-                if r % p == 0:
-                    self.read_new_msgs()
-                    to = random.choice(self.roster)
-                    self.send_msg(to)
-                    print(time.strftime("%H:%M:%S") + ': ' + self.whoami + ' sent email to', to)
-            except KeyboardInterrupt:
-                print(self.whoami + ' logging out...')
-                self.logout()
-                break
+                if not self.stopEvent.is_set():
+                    time.sleep(delay)
+                    r = random.randint(1,101)
+                    p = int(1 / SQMail.send_prob)
+                    if r % p == 0:
+                        self.read_new_msgs()
+                        to = random.choice(self.roster)
+                        self.send_msg(to)
+                        self.logger.info(self.whoami + ' sent email to ' + to)
             except Exception as e:
-                print('Whoops!: %s' % e)
-
+                self.logger.warning('Whoops!: %s' % e)
+        self.logout()
+        
     def read_new_msgs(self):
         '"Reads" all unread messages in the user\'s INBOX'
         if len(self.new_msgs) == 0 or self.loggedin == False:
             return
-        print(time.strftime("%H:%M:%S") + ': ' + self.whoami + ' is reading new messages.')
+        self.logger.info(self.whoami + ' is reading new messages.')
         for msg in self.new_msgs:
             myurl = self.url + msg
             response, content = self.http.request(myurl, 'GET', headers=self.headers)
@@ -199,13 +201,13 @@ class SQMail(httplib2.Http):
     def logout(self):
         'Logs out the user'
         if self.loggedin:
+            self.logger.info(self.whoami + ' logging out')
             location = 'signout.php'
             myurl = self.url + location
             response, content = self.http.request(myurl, 'GET', headers=self.headers)
             self.loggedin = False
         else:
-            print('Error: Not logged in!')
-
+            self.logger.warning('Error: Not logged in!')
     def del_all_msgs(self):
         '''Deletes all messages in the user\'s in and sent mailboxes--
         but just from the page, a maximum of 15 messages each. The
@@ -217,7 +219,7 @@ class SQMail(httplib2.Http):
         if len(self.all_msgs) == 0 or self.loggedin == False:
             return
         try:
-            print(time.strftime("%H:%M:%S") + ': ' + self.whoami + ' is clearing inbox.')
+            self.logger.info(self.whoami + ' is clearing inbox')
             for msg in self.all_msgs:
                 myurl = self.url + msg
                 response, contentpage = self.http.request(myurl, 'GET', headers=self.headers)
@@ -234,8 +236,7 @@ class SQMail(httplib2.Http):
             purgeurl = self.url + 'empty_trash.php?' + smtoken
             response, content = self.http.request(purgeurl, 'GET', headers=self.headers)
         except Exception as e:
-            print('Error clearing inbox:', e)
-
+            self.logger.warning('Error clearing inbox: ' + str(e))
     def send_msg(self,sendTo,subject=None,msgBody=None):
         'Sends an email message to sendTo addressee' 
         if self.loggedin == False:
@@ -294,7 +295,7 @@ class SQMail(httplib2.Http):
         try:
             location = response['location']
         except KeyError:
-            print ("Error: Message send failed.")
+            self.logger.warning("Error: Message send failed.")
             return
         myurl = location
         response, content = self.http.request(myurl, 'GET', headers=self.headers)
@@ -304,10 +305,10 @@ class SQMail(httplib2.Http):
         try:
             response, content = self.http.request(self.url, 'GET')
         except socket.error:
-            print('Error: No response from Web server at ' + self.host + '.')
+            self.logger.critical('Error: No response from Web server at ' + self.host + '.')
             return
         if response['status'] != '200':
-            print('Error: Squirrelmail not found at ' + self.host + '.')
+            self.logger.critical('Error: Squirrelmail not found at ' + self.host + '.')
             return
         # Get cookies from server response
         cookie = self._build_cookie(response)
@@ -325,7 +326,7 @@ class SQMail(httplib2.Http):
             location = response['location']
             self.loggedin = True
         except KeyError:
-            print("Error: Login attempt failed.")
+            self.logger.warning('Error: Login attempt failed.')
             return
         # On successful login, need to get new cookie, with key,
         # from the server response and replace in the HTTP headers
@@ -343,10 +344,8 @@ class SQMail(httplib2.Http):
             if src == 'right_main.php':
                 inbox = content
         self.new_msgs, self.all_msgs = self._get_inbox_links(inbox)
-        #return (len(self.new_msgs), len(self.all_msgs))
-        #
         # Now do the same for the SENT mailbox
         myurl = self.url + 'right_main.php?PG_SHOWALL=0&sort=0&startMessage=1&mailbox=INBOX.Sent'
         response, content = self.http.request(myurl, 'GET', headers=self.headers)
         self.sent_msgs = self._get_sent_links(content)
-        #return (len(self.new_msgs), len(self.all_msgs), len(self.sent_msgs))
+

@@ -9,14 +9,8 @@
 #       Run setup program:
 #          sudo python setup.py install
 ###########################
-import threading, time, pickle, sys
+import threading, time, pickle, sys, logging
 from sqmail_home import SQMail
-
-#server1 = 'elko.26maidenlane.net'
-#server2 = 'redding.26maidenlane.net'
-
-#agentList = {'hannah@'+server1: 'bagjms6a', 'ella@'+server1: 'afwtl7j4', 'joseph@'+server1: 'xutxehdd', 'ava@'+server1: 'ftgadqvl', 'victoria@'+server1: 'pttktw42', 'sophia@'+server1: 'famwzxe2', 'zoey@'+server2: 'qndjgbt3', 'liam@'+server1: '7nfun5em', 'charlotte@'+server1: '6bgkmjfn', 'natalie@'+server1: 'uc4r5ck8', 'michael@'+server2: 'abpwlsud', 'isabella@'+server2: 'ruftsefb', 'david@'+server1: 'a22q6drp', 'olivia@'+server1: 'ryex5cw2', 'chloe@'+server2: 'ht9czbxz', 'joshua@'+server2: 'nse9jg4k', 'logan@'+server2: 'd8hlynaq', 'lucas@'+server2: '2hpa92zw', 'emma@'+server2: 'kbsemhzg', 'daniel@'+server1: 'uutg3zbt', 'abigail@'+server2: 'rlez4xd8', 'andrew@'+server1: 'uakmbr33', 'william@'+server2: '3hkkp8xt', 'elijah@'+server2: 'drtkybpu', 'sofia@'+server1: 'eyvwbunb', 'james@'+server2: 'buahehfk', 'alexander@'+server1: '6tvmhfu6', 'anthony@'+server2: 'ntwqhace', 'grace@'+server2: 'zsxhwdhj', 'ethan@'+server1: 'wnz7s7gr', 'aiden@'+server1: 'ngcy4zvy', 'emily@'+server1: 'zha7utjl', 'jackson@'+server1: 's79jvucp', 'addison@'+server1: 'yytezmrb', 'aubrey@'+server2: 'u36fnreq', 'jayden@'+server2: 'veynzak6', 'madison@'+server1: 'kkgez8uy', 'mia@'+server2: 'uysjzwdr', 'harper@'+server2: 'vyx4uaz7', 'mason@'+server1: 'kmmfvqva', 'benjamin@'+server1: '2ekvwjp7', 'gabriel@'+server1: 'rdqp9qsq', 'amelia@'+server1: '2d9hvmkp', 'jacob@'+server2: 'sgwnd9km', 'evelyn@'+server2: '88ctr5py', 'elizabeth@'+server2: 'asdjswcv', 'avery@'+server2: 'pzljljjh', 'samuel@'+server2: '6bfdzq76', 'noah@'+server2: 'f7eclstk', 'matthew@'+server2: 'vdcukvuk'}
-
 
 # The list of sqmail agents is created by a script in
 # the accounts directory, named sqmail_accounts.py. This
@@ -26,19 +20,43 @@ from sqmail_home import SQMail
 try:
     agentList = pickle.load(open('accounts/sqmail_accounts.p', 'rb'))
 except Exception as e:
-    print('Error: Can\'t open and/or read accounts/sqmail_accounts.p', e)
+    logger.critical('Error: Can\'t open and/or read accounts/sqmail_accounts.p '+ e)
     sys.exit(1)
 
-# Create some agent threads as follows
+## Set up logging
+# Create logger
+logger = logging.getLogger('testsqmail.py')
+logger.setLevel(logging.INFO)
+# Create a logging handler. Take your choice
+# of a console (stream) for file handler
+ch = logging.StreamHandler()
+#ch = logging.FileHandler('testsqmail.log')
+# Add logging formatter
+formatter = logging.Formatter('%(asctime)s [%(name)s] %(levelname)s: %(\
+message)s', '%b %e %H:%M:%S')
+# Add formatter to logging handler
+ch.setFormatter(formatter)
+# Add logging handler to logger object
+logger.addHandler(ch)
+## Create some agent threads as follows
+agents = []
 for agent in agentList:
     user, host = agent.split('@')
     passwd = agentList[agent]
     try:
-        print('Spawning thread for ' + agent + '...', end='')
-        agent = threading.Thread(target=SQMail, args=(host,user,passwd,True,))
-        agent.start()
-        print ('success!')
+        logger.info('Spawning thread for ' + agent)
+        group = None
+        agents.append(SQMail(host,user,passwd,logger,group,True))
+        agents[-1].start()
     except Exception as e:
-        print ('Error: unable to start thread for ' + agent + ':', e)
+        logger.critical('Error: unable to start thread for ' + agent + ': ' + e)
 while True:
-    time.sleep(30)
+    try:
+        time.sleep(30)
+    except KeyboardInterrupt:
+        logger.info('Received kill signal, so exiting')
+        for agent in agents:
+            agent.stop()
+        for agent in agents:
+            agent.join()
+        sys.exit(0)
