@@ -12,16 +12,7 @@
 import threading, time, pickle, sys, logging
 from sqmail_home import SQMail
 
-# The list of sqmail agents is created by a script in
-# the accounts directory, named sqmail_accounts.py. This
-# script then stores a Python dictionary of email addresses
-# and their associated passwords in a Python pickle
-# file: accounts/sqmail_accounts.p.
-try:
-    agentList = pickle.load(open('accounts/sqmail_accounts.p', 'rb'))
-except Exception as e:
-    logger.critical('Error: Can\'t open and/or read accounts/sqmail_accounts.p '+ e)
-    sys.exit(1)
+people = ['dwhite@carbonfiberanvils.com','jroberge@glasshammersinc.com','jbrown@pha.com','rmoore@pha.com','ttekelenburg@carbonfiberanvils.com','dgoodale@glasshammersinc.com','drichard@glasshammersinc.com','asciarra@carbonfiberanvils.com','edrummond@carbonfiberanvils.com','rignaciuk@pha.com','tbeal@pha.com','cdrexel-harmon@glasshammersinc.com','dplourde@carbonfiberanvils.com','cbouchard@pha.com','jkiehn@glasshammersinc.com']
 
 ## Set up logging
 # Create logger
@@ -38,6 +29,22 @@ message)s', '%b %e %H:%M:%S')
 ch.setFormatter(formatter)
 # Add logging handler to logger object
 logger.addHandler(ch)
+
+# Set class variables for the logger and list of people
+SQMail.logger = logger
+SQMail.people = people
+
+# The list of sqmail agents is created by a script in
+# the accounts directory, named sqmail_accounts.py. This
+# script then stores a Python dictionary of email addresses
+# and their associated passwords in a Python pickle
+# file: accounts/sqmail_accounts.p.
+try:
+    agentList = pickle.load(open('accounts/sqmail_accounts.p', 'rb'))
+except Exception as e:
+    logger.critical('Error: Can\'t open and/or read accounts/sqmail_accounts.p '+ e)
+    sys.exit(1)
+
 ## Create some agent threads as follows
 agents = []
 for agent in agentList:
