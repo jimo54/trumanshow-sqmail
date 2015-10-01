@@ -1,4 +1,20 @@
 #!/usr/bin/env python
+#############################################
+# send_mail.py                              #
+# This script uses a version of the SQMail  #
+# class to allow the user to send an email  #
+# message from an existing email agent      #
+# account to any valid user. The email      #
+# addresses for the sender and recipient    #
+# must be specified as command-line         #
+# arguments, along with the sender's        #
+# password and the subject line. The email  #
+# body may either be included as an         #
+# argument, or a file containing the text   #
+# can be specified instead. Use the -h or   #
+# --help option for more information.       #
+#############################################
+
 import re, sys, socket, argparse
 import httplib2
 from urllib.parse import urlencode
@@ -216,6 +232,7 @@ class SQMail(httplib2.Http):
         return True
 
 if __name__=='__main__':
+
     # Set up the argparser
     parser = argparse.ArgumentParser(description='Send an email as an SQMail agent.')
     parser.add_argument('-f', '--from_addr', help='The email address of the sending agent', required=True)
@@ -238,6 +255,7 @@ if __name__=='__main__':
         except:
             print('ERROR: Unable to open/read text file containing email body:', e)
             sys.exit(1)
+            
     # Create the agent 
     sender = args.from_addr.split('@')[0]
     sender_domain = args.from_addr.split('@')[1]
@@ -248,14 +266,17 @@ if __name__=='__main__':
     except Exception as e:
         print('ERROR: Unable to instantiate that email agent:', e)
         sys.exit(1)
+        
     # Log in the agent
     if not agent.login():
         print('ERROR: Login failure for that email agent. Please confirm the account and credentials and that the email server is running.')
         sys.exit(1)
+        
     # Send the message
     if not agent.send_msg(args.to, args.subj, body):
         print('ERROR: Unable to send that email message.')
         sys.exit(1)
+        
     # Log out the agent
     agent.logout()
     print('Message sent from ' + args.from_addr + ' to ' + args.to + '.')
