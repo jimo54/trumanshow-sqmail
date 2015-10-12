@@ -36,7 +36,7 @@ class SQMail(httplib2.Http, threading.Thread):
     minDelay = 10
     maxDelay = 30
     spam_delay = 3600
-    people = []
+    #people = []
     logger = None
     #def __init__(self, host, user, password, logger, group=None, run=False):
     def __init__(self, host, user, password, group=None, run=False):
@@ -47,8 +47,8 @@ class SQMail(httplib2.Http, threading.Thread):
             sys.exit(1)
         # Check for a class people list. If none exists, issue a warning, but
         # we won't be sending any spam without one...
-        if len(SQMail.people) == 0:
-            logger.warning('No class-level people list exists, so I won\'t be sending any spam today')
+        #if len(SQMail.people) == 0:
+        #    logger.warning('No class-level people list exists, so I won\'t be sending any spam today')
         threading.Thread.__init__(self, group=None)
         self.host = host
         self.user = user
@@ -75,7 +75,7 @@ class SQMail(httplib2.Http, threading.Thread):
         # stopEvent is sent by caller when Ctrl-c is pressed
         # See the method above
         while not self.stopEvent.is_set():
-            self.logger.info('A random person is ' + random.choice(SQMail.people))
+            #self.logger.info('A random person is ' + random.choice(SQMail.people))
             try:
                 self.login()
                 if len(self.all_msgs) > 0:
@@ -94,15 +94,15 @@ class SQMail(httplib2.Http, threading.Thread):
                         self.send_msg(to)
                         self.logger.info(self.whoami + ' sent email to ' + to)
                 # Is it time to consider sending spam and do we have a spamee list?
-                if len(SQMail.people) > 0 and int(time.time()) - self.__lastSend >= spam_delay:
-                    # If so, are the odds in our favor?
-                    if r % p2 == 0:
-                        # Pick a random spamee
-                        person = random.choice(SQMail.person)
-                        # Here is where we grab some random spam message...
-                        self.send_msg(self.__person)
-                        self.logger(self.__whoami + ' SENT A SPAM EMAIL TO: ' + self.__person)
-                        self.__lastSend = int(time.time())
+                #if len(SQMail.people) > 0 and int(time.time()) - self.__lastSend >= spam_delay:
+                #    # If so, are the odds in our favor?
+                #    if r % p2 == 0:
+                #        # Pick a random spamee
+                #        person = random.choice(SQMail.person)
+                #        # Here is where we grab some random spam message...
+                #        self.send_msg(self.__person)
+                #        self.logger(self.__whoami + ' SENT A SPAM EMAIL TO: ' + self.__person)
+                #        self.__lastSend = int(time.time())
             except Exception as e:
                 self.logger.warning('Whoops!: %s' % e)
         self.logout()

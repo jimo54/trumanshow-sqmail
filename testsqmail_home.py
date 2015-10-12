@@ -12,7 +12,7 @@
 import threading, time, pickle, sys, logging
 from sqmail_home import SQMail
 
-people = ['dwhite@carbonfiberanvils.com','jroberge@glasshammersinc.com','jbrown@pha.com','rmoore@pha.com','ttekelenburg@carbonfiberanvils.com','dgoodale@glasshammersinc.com','drichard@glasshammersinc.com','asciarra@carbonfiberanvils.com','edrummond@carbonfiberanvils.com','rignaciuk@pha.com','tbeal@pha.com','cdrexel-harmon@glasshammersinc.com','dplourde@carbonfiberanvils.com','cbouchard@pha.com','jkiehn@glasshammersinc.com']
+#people = ['dwhite@carbonfiberanvils.com','jroberge@glasshammersinc.com','jbrown@pha.com','rmoore@pha.com','ttekelenburg@carbonfiberanvils.com','dgoodale@glasshammersinc.com','drichard@glasshammersinc.com','asciarra@carbonfiberanvils.com','edrummond@carbonfiberanvils.com','rignaciuk@pha.com','tbeal@pha.com','cdrexel-harmon@glasshammersinc.com','dplourde@carbonfiberanvils.com','cbouchard@pha.com','jkiehn@glasshammersinc.com']
 
 ## Set up logging
 # Create logger
@@ -32,7 +32,7 @@ logger.addHandler(ch)
 
 # Set class variables for the logger and list of people
 SQMail.logger = logger
-SQMail.people = people
+#SQMail.people = people
 
 # The list of sqmail agents is created by a script in
 # the accounts directory, named sqmail_accounts.py. This
@@ -53,10 +53,10 @@ for agent in agentList:
     try:
         logger.info('Spawning thread for ' + agent)
         group = None
-        agents.append(SQMail(host,user,passwd,logger,group,True))
+        agents.append(SQMail(host,user,passwd,logger,group))
         agents[-1].start()
     except Exception as e:
-        logger.critical('Error: unable to start thread for ' + agent + ': ' + e)
+        logger.critical('Error: unable to start thread for ' + user + '@' + host + ': ' + e)
 while True:
     try:
         time.sleep(30)
