@@ -138,6 +138,9 @@ class SQMail(httplib2.Http, threading.Thread):
             if test != self.whoami and test not in roster:
                 roster.append(test)
                 count += 1
+        # Before return, we need to take the 'webmail.' out of all the email addresses
+        for i in range(len(roster)):
+            roster[i] = roster[i].replace('webmail.','')
         return roster
         
     def _get_inbox_links(self, inboxlinks):
