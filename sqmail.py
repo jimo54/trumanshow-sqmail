@@ -27,25 +27,18 @@ class SQMail(httplib2.Http, threading.Thread):
     minDelay = 10
     maxDelay = 30
     spam_delay = 3600
-    #people = []
     logger = None
-    #def __init__(self, host, user, password, logger, group=None, run=False):
     def __init__(self, host, user, password, group=None, run=False):
         'Constructor creates an Squirrelmail user'
         # Check for a class logger variable and check out if none exists
         if SQMail.logger == None:
             print('ERROR: No SQMail logger exists. I can\'t work this way!')
             sys.exit(1)
-        # Check for a class people list. If none exists, issue a warning, but
-        # we won't be sending any spam without one...
-        #if len(SQMail.people) == 0:
-        #    logger.warning('No class-level people list exists, so I won\'t be sending any spam today')
         threading.Thread.__init__(self, group=None)
         self.host = host
         self.user = user
         self.whoami = user + '@' + host
         self.password = password
-        #self.logger = logger
         self.stopEvent = threading.Event()
         self.http = httplib2.Http()
         self.url = 'http://' + host + '/squirrelmail/src/'
@@ -66,7 +59,6 @@ class SQMail(httplib2.Http, threading.Thread):
         # stopEvent is sent by caller when Ctrl-c is pressed
         # See the method above
         while not self.stopEvent.is_set():
-            #self.logger.info('A random person is ' + random.choice(SQMail.people))
             try:
                 self.login()
                 if len(self.all_msgs) > 0:
@@ -84,16 +76,6 @@ class SQMail(httplib2.Http, threading.Thread):
                         to = random.choice(self.roster)
                         self.send_msg(to)
                         self.logger.info(self.whoami + ' sent email to ' + to)
-                # Is it time to consider sending spam and do we have a spamee list?
-                #if len(SQMail.people) > 0 and int(time.time()) - self.__lastSend >= spam_delay:
-                #    # If so, are the odds in our favor?
-                #    if r % p2 == 0:
-                #        # Pick a random spamee
-                #        person = random.choice(SQMail.person)
-                #        # Here is where we grab some random spam message...
-                #        self.send_msg(self.__person)
-                #        self.logger(self.__whoami + ' SENT A SPAM EMAIL TO: ' + self.__person)
-                #        self.__lastSend = int(time.time())
             except Exception as e:
                 self.logger.warning('Whoops!: %s' % e)
         self.logout()
@@ -169,6 +151,7 @@ class SQMail(httplib2.Http, threading.Thread):
         # Some sample user-agent strings
         user_agents = ['"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0"', '"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:43.0) Gecko/20100101 Firefox/43.0"','"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.103 Safari/537.36"','"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:44.0) Gecko/20100101 Firefox/44.0"','"Mozilla/5.0 (Windows NT 6.1; rv:43.0) Gecko/20100101 Firefox/43.0"']
         headers = {}
+        # Pick a random user-agent from the list above
         headers['User-Agent'] = random.choice(user_agents)
         if cookie:
             headers['Referer']= self.url + 'login.php'
@@ -232,8 +215,8 @@ class SQMail(httplib2.Http, threading.Thread):
             self.logger.warning('Error: Not logged in!')
     def del_all_msgs(self):
         '''Deletes all messages in the user\'s in and sent mailboxes--
-        but just from the page, a maximum of 15 messages each. The
-        default is to call this method when either mailbox contains
+        but just from the current page, a maximum of 15 messages each.
+        The default is to call this method when either mailbox contains
         10 or more messages, so this shouldn't be a problem.
         '''
         # Put all our eggs in one basket
@@ -259,6 +242,7 @@ class SQMail(httplib2.Http, threading.Thread):
             response, content = self.http.request(purgeurl, 'GET', headers=self.headers)
         except Exception as e:
             self.logger.warning('Error clearing inbox: ' + str(e))
+            
     def send_msg(self,sendTo,subject=None,msgBody=None):
         'Sends an email message to sendTo addressee' 
         if self.loggedin == False:
@@ -297,7 +281,6 @@ class SQMail(httplib2.Http, threading.Thread):
         else:
             body['body'] = msgBody
         if sendTo == None:
-            #body['send_to'] = 'jim@' + server1
             body['send_to'] = random.choice(self.roster)
         else:
             body['send_to'] = sendTo
@@ -355,7 +338,7 @@ class SQMail(httplib2.Http, threading.Thread):
         except KeyError:
             self.logger.warning('Error: Login attempt failed.')
             return
-        # On successful login, need to get new cookie, with key,
+        # On successful login, need to get a new cookie, with key,
         # from the server response and replace in the HTTP headers
         cookie = self._build_cookie(response)
         self.headers['Cookie'] = cookie
@@ -375,4 +358,3 @@ class SQMail(httplib2.Http, threading.Thread):
         myurl = self.url + 'right_main.php?PG_SHOWALL=0&sort=0&startMessage=1&mailbox=INBOX.Sent'
         response, content = self.http.request(myurl, 'GET', headers=self.headers)
         self.sent_msgs = self._get_sent_links(content)
-
