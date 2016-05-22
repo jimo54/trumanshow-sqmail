@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# sqmail_accounts.py
 ################################################
 # This script creates a Python dictionary      #
 # containing the specified (below) number of   #
