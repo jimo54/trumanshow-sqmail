@@ -3,22 +3,12 @@ import os, sys, re, socket, time, random, logging, threading
 import httplib2, pickle
 import sentence_generator as sg
 from urllib.parse import urlencode
-from loremipsum import get_sentences
-###########################
-# This script requires the fortune-mod package to be installed
-# on the local system:
-#    sudo apt-get install fortune-mod
-# To use Lorem ipsum sentence generator:
-#    Install setuptools:
-#       (For Python 2) sudo apt-get install python-setuptools
-#       (For Python 3) sudo apt-get install python3-setuptools
-#    Go to: https://pypi.python.org/pypi/loremipsum/
-#       Download the tar ball
-#       Extract and cd into new directory
-#       Run setup program:
-#          (For Python 2) sudo python setup.py install
-#          (For Python 3) sudo python3 setup.py install
-###########################
+
+#################################################################
+# This script requires the fortune-mod package to be installed  #
+# on the local system:                                          #
+#    sudo apt-get install fortune-mod                           #
+#################################################################
 
 class SQMail(httplib2.Http, threading.Thread):
     'A class that interacts with a Squirrelmail email app server'

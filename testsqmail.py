@@ -1,18 +1,7 @@
-#!/usr/bin/python
-###########################
-# To use Lorem ipsum sentence generator:
-#    Install setuptools:
-#       sudo apt-get install python-setuptools
-#    Go to: https://pypi.python.org/pypi/loremipsum/
-#       Download the tar ball
-#       Extract
-#       Run setup program:
-#          sudo python setup.py install
-###########################
-import threading, time, pickle, sys, logging
-from sqmail_home import SQMail
+#!/usr/bin/env python3
 
-#people = ['dwhite@carbonfiberanvils.com','jroberge@glasshammersinc.com','jbrown@pha.com','rmoore@pha.com','ttekelenburg@carbonfiberanvils.com','dgoodale@glasshammersinc.com','drichard@glasshammersinc.com','asciarra@carbonfiberanvils.com','edrummond@carbonfiberanvils.com','rignaciuk@pha.com','tbeal@pha.com','cdrexel-harmon@glasshammersinc.com','dplourde@carbonfiberanvils.com','cbouchard@pha.com','jkiehn@glasshammersinc.com']
+import threading, time, pickle, sys, logging
+from sqmail import SQMail
 
 ## Set up logging
 # Create logger
