@@ -1,6 +1,6 @@
 # trumanshow-sqmail
 
-A tool to generate Web traffic in the form of emails exchanged among virtual agent threads with user accounts on email servers running the SquirrelMail Web client.
+A tool to generate Web traffic in the form of emails exchanged among virtual agent threads with user accounts on email servers with the SquirrelMail Web client installed.
 
 ##Files##
 **accounts:** A folder containing Python scripts and other files used to create user accounts for virtual agents. See README.md in the accounts folder for more information.
@@ -22,5 +22,10 @@ A tool to generate Web traffic in the form of emails exchanged among virtual age
 **to_html.sh:** A three-line bash script that changes the default view for all SquirrelMail user accounts on an email server to HTML vs plaintext. It must be run on the email server where accounts are to be so configured.
 
 ##Installation##
+The SQMail class (defined in sqmail.py) requires the fortune-mod package to be installed on the local system. In Ubuntu 14.04, the following command line can be used:
+
+```sudo apt-get install fortune-mod```
+
+Otherwise, it is only necessary to copy the files and directories in this repository to a convenient location on the machine(s) that will serve as platform for the virtual user agents.
 
 ##Configuration and Use##
