@@ -13,7 +13,7 @@ A tool to generate Web traffic in the form of emails exchanged among virtual age
 
 **send_mail.py:** A script that uses a version of the SQMail class (from sqmail.py) to allow a user to send an email message from an existing email agent account to any valid SquirrelMail user. Run the script with the -h or --help option for usage details.
 
-**sentence_generator.py:** A script that generates random, locally-correct sentences using textual input and a Markov model. Adapted from https://github.com/hrs/markov-sentence-generato, with some slight modifications, from a Python 2 standalone program. Used by the SQMail class (from sqmail.py) to generate random sentences used as subject lines for email messages sent by virtual agents threads.
+**sentence_generator.py:** A script that generates random, locally-correct sentences using textual input and a Markov model. Adapted from https://github.com/hrs/markov-sentence-generator, with some slight modifications, from a Python 2 standalone program. Used by the SQMail class (from sqmail.py) to generate random sentences used as subject lines for email messages sent by virtual agents threads.
 
 **sqmail.py:** This script defines SQMail, a class that interacts with a Squirrelmail email client to log in/out, send email to other SquirrleMail users, "read" email messages and to occasionally clear the inbox and other mailboxes. The user agents' activities are logged, by default, to the display.
 
