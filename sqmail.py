@@ -166,7 +166,10 @@ class SQMail(httplib2.Http, threading.Thread):
     
     def _build_headers(self, cookie=None, login=False):
         'Private method to build client\'s HTTP headers'
+        # Some sample user-agent strings
+        user_agents = ['"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0"', '"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:43.0) Gecko/20100101 Firefox/43.0"','"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.103 Safari/537.36"','"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:44.0) Gecko/20100101 Firefox/44.0"','"Mozilla/5.0 (Windows NT 6.1; rv:43.0) Gecko/20100101 Firefox/43.0"']
         headers = {}
+        headers['User-Agent'] = random.choice(user_agents)
         if cookie:
             headers['Referer']= self.url + 'login.php'
             headers['Cookie'] = cookie
