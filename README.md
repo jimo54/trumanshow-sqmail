@@ -1,6 +1,6 @@
 # trumanshow-sqmail
 
-A tool to generate Web traffic in the form of emails exchanged among virtual agent threads with accounts on email servers using the SquirrelMail Web client.
+A tool to generate Web traffic in the form of emails exchanged among virtual agent threads with user accounts on email servers running the SquirrelMail Web client.
 
 ##Files##
 **accounts:** A folder containing Python scripts and other files used to create user accounts for virtual agents. See README.md in the accounts folder for more information.
