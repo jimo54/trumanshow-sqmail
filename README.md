@@ -26,7 +26,7 @@ The SQMail class (defined in sqmail.py) requires the fortune-mod package to be i
 
 ```sudo apt-get install fortune-mod```
 
-Otherwise, it is only necessary to copy the files and directories in this repository to a convenient location on the machine(s) that will serve as platform for the virtual user agents.
+Otherwise, it is only necessary to copy the files and directories in this repository to a convenient location on the machine(s) that will serve as platform for generating the email exchanges.
 
 ##Configuration and Use##
 Prior to running this application, user accounts for virtual user agents must be created on the SquirrelMail servers among which email traffic is to be exchanged. Scripts and other files needed to generate randomly-selected usernames and passwords, as well as creating accounts, are included in the accounts directory in this repository. See the README.md file in the accounts directory for details.
