@@ -7,11 +7,11 @@
 # in the current working directory. The file should include         #
 # some realistic spam email samples, formatted thusly:              #
 #                                                                   #
-# Line 1: From: <emailaddress>                                      #
-# Line 2: Subject: <subject line>                                   #
-# Line 3: <blank>                                                   #
+#     Line 1: From: <emailaddress>                                  #
+#     Line 2: Subject: <subject line>                               #
+#     Line 3: <blank>                                               #
 # Line 4 - ?: <email body>                                          #
-# Line ?: '+++++++++++++++++++++' <At least four '+'>               #
+#   Line ?+1: '+++++++++++++++++++++' <At least four '+'>           #
 #                                                                   #
 # Lather, rinse, repeat...                                          #
 #                                                                   #
