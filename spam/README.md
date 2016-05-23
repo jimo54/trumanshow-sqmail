@@ -25,7 +25,11 @@ The spam_factory.py script requires three forms of configuration to function:
 3) A file containing sample spam emails that will be sent to student participants. By default, this file should be called spam_samples.txt; however, a different name may be specified in the configuration file. Each spam sample must be formatted as shown below. Several samples are provided in the included spam_samples.txt file.
 
   Line 1: From: <emailaddress>
+
   Line 2: Subject: <subject line>
+
   Line 3: <blank>
+
 Line 4-?: <email body>
+
 Line ?+1: '+++++++++++++++++++++' <At least four '+'>
