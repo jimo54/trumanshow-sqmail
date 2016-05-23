@@ -160,17 +160,21 @@ def main(config_file):
                 msg.attach(part1)
                 msg.attach(part2)
                 # Send the message via the destination SMTP server.
-                s = smtplib.SMTP(server)
-                # sendmail function takes 3 arguments: sender's address, recipient's address
-                # and message to send - here it is sent as one string.
-                s.sendmail(sender, to, msg.as_string())
-                logger.info('Spam away from ' + sender + ' to ' + to + '!')
-                s.quit()
+                try:
+                    s = smtplib.SMTP(server)
+                    # sendmail function takes 3 arguments: sender's address, recipient's address
+                    # and message to send - here it is sent as one string.
+                    s.sendmail(sender, to, msg.as_string())
+                    logger.info('Spam away from ' + sender + ' to ' + to + '!')
+                    s.quit()
+                except OSError as e:
+                    logger.critical('Something bad happened (OSError): {}'.format(repr(e)))
+                    continue
         except KeyboardInterrupt:
                 logger.info('Our work is done here, Tonto. Hiyo, Silver...away!')
                 sys.exit(0)
         except Exception as e:
-                logger.critical('Something bad happened:', e)
+                logger.critical('Something bad happened (Exception): {}'.format(e))
                 sys.exit(1)
                 
 if __name__=='__main__':
