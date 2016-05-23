@@ -20,6 +20,7 @@ import sys, smtplib, random, time, logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from configparser import ConfigParser
+from argparse import ArgumentParser
 
 # Define a list of spam recipient email addresses...
 victims = ['elmer@elko.26maidenlane.net', 'brooklyn@redding.26maidenlane.net', 'kelsey@elko.26maidenlane.net', 'raymond@redding.26maidenlane.net', 'rick@redding.26maidenlane.net', 'zachary@elko.26maidenlane.net', 'eva@elko.26maidenlane.net', 'antonio@elko.26maidenlane.net', 'kathleen@elko.26maidenlane.net', 'samuel@elko.26maidenlane.net', 'connor@elko.26maidenlane.net', 'vicki@elko.26maidenlane.net', 'walter@redding.26maidenlane.net', 'shawn@redding.26maidenlane.net']
@@ -63,8 +64,8 @@ def get_spam_list(spam_file):
         </html>'''
         spam.append([sender, subj, html, body])
         f.close()
-    except Exception:
-        print('Error: Unable to open/read file ' + spam_file + '. Exiting...')
+    except Exception as e:
+        print('Error: Unable to open spam_samples file: {}. Exiting...'.format(repr(e)))
         sys.exit(1)
     return spam
 
@@ -86,24 +87,25 @@ def read_config(file_name):
     try:
         parser = ConfigParser()
         parser.read(file_name)
-        return parser
+        return parser['settings']
     except:
         return None
 
-if __name__=='__main__':
+def main(config_file):
     # Read the config file and set options
     # First, set the default values
     defaults = {'spam_prob': .25, 'min_delay': 45,'max_delay': 90,'min_recipients':2, 'max_recipients': 5,'spam_file': 'spam_samples.txt'}
-    options = read_config('settings.ini')
+    options = read_config(config_file)
     if options == None:
         print('ERROR: Can\'t read my configuration file!')
         sys.exit(1)
-    spam_prob = float(options.get('settings', 'spam_prob', vars=defaults))
-    min_delay = int(options.get('settings', 'min_delay', vars=defaults))
-    max_delay = int(options.get('settings', 'max_delay', vars=defaults))
-    min_recipients = int(options.get('settings', 'min_recipients', vars=defaults))
-    max_recipients = int(options.get('settings', 'max_recipients', vars=defaults))
-    spam_file = options.get('settings', 'spam_file', vars=defaults)
+    spam_prob = options.getfloat('spam_prob', defaults['spam_prob'])
+    min_delay = options.getint('min_delay', defaults['min_delay'])
+    max_delay = options.getint('max_delay', defaults['max_delay'])
+    min_recipients = options.getint('min_recipients', defaults['min_recipients'])
+    max_recipients = options.getint('max_recipients', defaults['max_recipients'])
+    spam_file = options.get('spam_file', defaults['spam_file'])
+    spam_file = spam_file[1:-1]
     # Load up some spam content
     spam = get_spam_list(spam_file)
     ## Set up logging
@@ -170,3 +172,10 @@ if __name__=='__main__':
         except Exception as e:
                 logger.critical('Something bad happened:', e)
                 sys.exit(1)
+                
+if __name__=='__main__':
+    parser = ArgumentParser(description='Generate spam emails targeted at cybersecurity simulation participants.')
+    parser.add_argument('-f', '--config_file', default='settings.ini', nargs='?',
+                        help='Configuration file (default: %(default)s)')
+    args = parser.parse_args()
+    main(args.config_file)
