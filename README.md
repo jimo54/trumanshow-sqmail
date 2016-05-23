@@ -3,7 +3,7 @@
 A tool to generate Web traffic in the form of emails exchanged among virtual agent threads with user accounts on email servers running SquirrelMail.
 
 ##Files##
-**accounts:** A folder containing Python scripts and other files used to create user accounts for virtual agents. See README.md in the accounts folder for more information.
+**accounts:** A folder containing Python scripts and other files used to create user accounts for virtual agents on each participating email server running SquirrelMail. See README.md in the accounts folder for more information.
 
 **spam:** A folder containing a Python script and a file with sample spam messages that can be used to generate spam email messages targeted at student participants. See README.md in the spam folder for more information.
 
@@ -15,7 +15,7 @@ A tool to generate Web traffic in the form of emails exchanged among virtual age
 
 **sentence_generator.py:** A script that generates random, locally-correct sentences using textual input and a Markov model. Adapted from https://github.com/hrs/markov-sentence-generator, with some slight modifications, from a Python 2 standalone program. Used by the SQMail class (from sqmail.py) to generate random sentences used as subject lines for email messages sent by virtual agents threads.
 
-**sqmail.py:** This script defines SQMail, a class that interacts with a Squirrelmail email client to log in/out, send email to other SquirrleMail users, "read" email messages and to occasionally clear the inbox and other mailboxes. The user agents' activities are logged, by default, to the display.
+**sqmail.py:** This script defines SQMail, a class that interacts with Squirrelmail email clients to log in/out virtual user agents, send email to other SquirrleMail users, "read" email messages and to occasionally clear the inbox and other mailboxes. The user agents' activities are logged, by default, to the display.
 
 **testsqmail.py:** The driver script for the SQMail class; it creates a thread for each user agent account listed in the accounts/accounts.p pickle file. The script runs until Ctrl-c is pressed, at which point all user agent threads receive a stop message and the threads joined to end the program.
 
