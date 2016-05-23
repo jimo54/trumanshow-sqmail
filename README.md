@@ -5,7 +5,7 @@ A tool to generate Web traffic in the form of emails exchanged among virtual age
 ##Files##
 **accounts:** A folder containing Python scripts and other files used to create user accounts for virtual agents. See README.md in the accounts folder for more information.
 
-**spam:** A folder containing a Python script and a file with sample spam messages that can be used to generate spam email messages targeted at student participants.
+**spam:** A folder containing a Python script and a file with sample spam messages that can be used to generate spam email messages targeted at student participants. See README.md in the spam folder for more information.
 
 **README.md:** This file.
 

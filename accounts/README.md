@@ -13,11 +13,11 @@ Python scripts and other files used to create user accounts for virtual user age
 **sqmail_accounts.py:** This script creates a Python dictionary containing a specified number of usernames and randomly-generated passwords, with usernames randomly selected from a file of names provided in a file 'names.txt' in the present working directory (pwd). The dictionary is then written to a Pickle file named sqmail_accounts.p in the pwd.
 
 ## Installation
-These scripts use only Python 3 standard libraries. 
+These scripts use only Python 3 standard libraries. No additional installation steps are required.
 
 ## Configuration and Use
 Use the sqmail_accounts.py script to generate any number of user accounts for the email servers. Beforehand, the fully-qualified domain name for each email server, the numbers of accounts to be generated for each server, and the desired length of the randomly generated passwords must be set. These parameters should be entered in the first few lines of the sqmail_accounts.py script. When the script is run, the user account information will be written to a Python pickle file named sqmail_accounts.p in the present working directory.
 
-After the sqmail_accounts.p has been written to disk, the make_accounts.py script can be used to generate the shell statements to create the user accounts on their respective servers. By default, these statements are written to the display. For convenience's sake, the statements are grouped by server name.
+After the sqmail_accounts.p has been written to disk, the make_accounts.py script can be used to generate the shell statements necessary to create the user accounts on their respective servers. By default, these statements are written to the display. For convenience's sake, the statements are grouped by server host name.
 
 

@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
+# spam_factory.py
 #####################################################################
-#                                                                   #
 # spam_factory.py                                                   #
 #                                                                   #
 # This script requires a text file called spam_samples.txt          #
@@ -14,14 +15,14 @@
 #                                                                   #
 # Lather, rinse, repeat...                                          #
 #                                                                   #
-#                                                                   #
 #####################################################################
 import sys, smtplib, random, time, logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from configparser import ConfigParser
 
 # Define a list of spam recipient email addresses...
-victims = ['htrout@carbonfiberanvils.com','khollister@carbonfiberanvils.com','lrichards@carbonfiberanvils.com','mvick@carbonfiberanvils.com','abaker@carbonfiberanvils.com','abaxter@glasshammersinc.com','mweston@glasshammersinc.com','nparsons@glasshammersinc.com','sbristow@glasshammersinc.com','pmoreston@glasshammersinc.com','mdeckard@pha.com','scalvin@pha.com','spoole@pha.com','mbowman@pha.com','dmercer@pha.com']
+victims = ['elmer@elko.26maidenlane.net', 'brooklyn@redding.26maidenlane.net', 'kelsey@elko.26maidenlane.net', 'raymond@redding.26maidenlane.net', 'rick@redding.26maidenlane.net', 'zachary@elko.26maidenlane.net', 'eva@elko.26maidenlane.net', 'antonio@elko.26maidenlane.net', 'kathleen@elko.26maidenlane.net', 'samuel@elko.26maidenlane.net', 'connor@elko.26maidenlane.net', 'vicki@elko.26maidenlane.net', 'walter@redding.26maidenlane.net', 'shawn@redding.26maidenlane.net']
     
 def get_spam_list(spam_file):
     '''Create a list of canned spam emails, complete
@@ -80,24 +81,34 @@ def pick_victims(victims, min, max):
         suckers.append(maybe)
     return suckers
 
+def read_config(file_name):
+    # Create a parser and read the given config file
+    try:
+        parser = ConfigParser()
+        parser.read(file_name)
+        return parser
+    except:
+        return None
+
 if __name__=='__main__':
-    # What's the probability a spam email will be
-    # sent to a victim each time the chance occurs?
-    spam_prob = .25
-    # How long to 'rest' (in secs) between loop iterations?
-    # We'll choose randomly within a range to keep the
-    # good guys guessing
-    min_delay = 45
-    max_delay = 90
-    # How many recipients should receive each spam blast?
-    # Let's use a range and randomly pick a number each time.
-    min_recip = 2
-    max_recip = 5
+    # Read the config file and set options
+    # First, set the default values
+    defaults = {'spam_prob': .25, 'min_delay': 45,'max_delay': 90,'min_recipients':2, 'max_recipients': 5,'spam_file': 'spam_samples.txt'}
+    options = read_config('settings.ini')
+    if options == None:
+        print('ERROR: Can\'t read my configuration file!')
+        sys.exit(1)
+    spam_prob = float(options.get('settings', 'spam_prob', vars=defaults))
+    min_delay = int(options.get('settings', 'min_delay', vars=defaults))
+    max_delay = int(options.get('settings', 'max_delay', vars=defaults))
+    min_recipients = int(options.get('settings', 'min_recipients', vars=defaults))
+    max_recipients = int(options.get('settings', 'max_recipients', vars=defaults))
+    spam_file = options.get('settings', 'spam_file', vars=defaults)
     # Load up some spam content
-    spam = get_spam_list('spam_samples.txt')
+    spam = get_spam_list(spam_file)
     ## Set up logging
     # Create logger
-    logger = logging.getLogger('sfact.py')
+    logger = logging.getLogger('spam_factory.py')
     logger.setLevel(logging.INFO)
     # Create a logging handler. Take your choice
     # of a console (stream) for file handler
@@ -115,16 +126,15 @@ if __name__=='__main__':
         # Whew!!! Let's take a break!
         loop_delay = random.randrange(min_delay, max_delay + 1)
         logger.info('Whew! Taking a well-deserved ' + str(loop_delay) + ' second break...')
-        time.sleep(loop_delay)
-
         try:
+            time.sleep(loop_delay)
             # Spammers!!! May the odds be ever in your favor...
             r = random.randint(1,101)
             p = int(1 / spam_prob)
             if r % p != 0:
                 logger.info('The odds were not in our favor. Maybe next time...')
                 continue
-            recips = pick_victims(victims, min_recip, max_recip)
+            recips = pick_victims(victims, min_recipients, max_recipients)
             logger.info('Oh, goody! We win!!!')
             item = random.choice(spam)
             sender = item[0].strip()
@@ -147,7 +157,6 @@ if __name__=='__main__':
                 # the HTML message, is best and preferred.
                 msg.attach(part1)
                 msg.attach(part2)
-
                 # Send the message via the destination SMTP server.
                 s = smtplib.SMTP(server)
                 # sendmail function takes 3 arguments: sender's address, recipient's address
