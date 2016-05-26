@@ -3,6 +3,7 @@ import os, sys, re, socket, time, random, logging, threading
 import httplib2, pickle
 import sentence_generator as sg
 from urllib.parse import urlencode
+from configparser import ConfigParser
 
 #################################################################
 # This script requires the fortune-mod package to be installed  #
@@ -17,16 +18,28 @@ class SQMail(httplib2.Http, threading.Thread):
     # script then stores a Python dictionary of email addresses
     # and their associated passwords in a Python pickle
     # file, accounts/sqmail_accounts.p, which we'll use here
-    # to load account information..
+    # to load account information. See README.md for details.
     try:
         accounts = pickle.load(open('accounts/sqmail_accounts.p', 'rb'))
     except Exception as e:
         self.logger.critical('Error: Can\'t open and/or read accounts/sqmail_accounts.p ' + str(e))
         sys.exit(1)
-    send_prob = 0.1
-    spam_prob = 0.5
-    minDelay = 10
-    maxDelay = 30
+    # Read configuration values from settings.ini in the present working directory.
+    # On error, use these defaults.
+    defaults = {"send_prob": 0.1, "min_delay": 10, "max_delay": 30}
+    try:
+        parser = ConfigParser()
+        parser.read('settings.ini')
+        options = parser['settings']
+        send_prob = options.getfloat('send_prob', defaults['send_prob'])
+        min_delay = options.getint('min_delay', defaults['min_delay'])
+        max_delay = options.getint('max_delay', defaults['max_delay'])
+    except Exception as e:
+        print('SQMail unable to read configuration from settings.ini: {}. Configuration set using hard-coded defaults.'.format(repr(e)))
+        send_prob = defaults['send_prob']
+        min_delay = defaults['min_delay']
+        max_delay = defaults['max_delay']
+    
     def __init__(self, host, user, password, group=None, run=False):
         'Constructor creates an Squirrelmail user'
         # Check for a class logger variable and check out if none exists.
@@ -55,7 +68,7 @@ class SQMail(httplib2.Http, threading.Thread):
         self.logger.info(self.whoami + ': Stop event has been set')
         
     def run(self):
-        delay = random.randint(SQMail.minDelay, SQMail.maxDelay)
+        delay = random.randint(SQMail.min_delay, SQMail.max_delay)
         # stopEvent is sent by caller when Ctrl-c is pressed
         # See the method above
         while not self.stopEvent.is_set():
@@ -69,9 +82,7 @@ class SQMail(httplib2.Http, threading.Thread):
                 if not self.stopEvent.is_set():
                     time.sleep(delay)
                     r = random.randint(1,101)
-                    p = int(1 / SQMail.send_prob)
-                    p2 = int(1 / SQMail.spam_prob)
-                    if r % p == 0:
+                    if r <= (SQMail.send_prob * 100):
                         self.read_new_msgs()
                         to = random.choice(self.roster)
                         self.send_msg(to)

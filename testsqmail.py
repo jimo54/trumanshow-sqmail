@@ -25,12 +25,12 @@ SQMail.logger = logger
 # The list of sqmail agents is created by a script in
 # the accounts directory, named sqmail_accounts.py. This
 # script then stores a Python dictionary of email addresses
-# and their associated passwords in a Python pickle
-# file: accounts/sqmail_accounts.p.
+# and their associated passwords in a Python pickle file:
+# accounts/sqmail_accounts.p. See README.md for details.
 try:
     agentList = pickle.load(open('accounts/sqmail_accounts.p', 'rb'))
 except Exception as e:
-    logger.critical('Error: Can\'t open and/or read accounts/sqmail_accounts.p '+ e)
+    logger.critical('Error: Can\'t open and/or read accounts/sqmail_accounts.p: '.format(repr(e)))
     sys.exit(1)
 
 ## Create some agent threads as follows
@@ -50,6 +50,8 @@ while True:
         time.sleep(30)
     except KeyboardInterrupt:
         logger.info('Received kill signal, so exiting')
+        # Now send the stop signal to all
+        # agents and wait for them to quit
         for agent in agents:
             agent.stop()
         for agent in agents:
