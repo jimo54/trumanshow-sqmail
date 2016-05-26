@@ -19,9 +19,8 @@ ch.setFormatter(formatter)
 # Add logging handler to logger object
 logger.addHandler(ch)
 
-# Set class variables for the logger and list of people
+# Set class variables for the logger
 SQMail.logger = logger
-#SQMail.people = people
 
 # The list of sqmail agents is created by a script in
 # the accounts directory, named sqmail_accounts.py. This

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os, sys, re, socket, time, random, logging, threading
 import httplib2, pickle
 import sentence_generator as sg
@@ -16,21 +16,21 @@ class SQMail(httplib2.Http, threading.Thread):
     # the accounts directory, named sqmail_accounts.py. This
     # script then stores a Python dictionary of email addresses
     # and their associated passwords in a Python pickle
-    # file: accounts/sqmail_accounts.p.
+    # file, accounts/sqmail_accounts.p, which we'll use here
+    # to load account information..
     try:
         accounts = pickle.load(open('accounts/sqmail_accounts.p', 'rb'))
     except Exception as e:
         self.logger.critical('Error: Can\'t open and/or read accounts/sqmail_accounts.p ' + str(e))
-        sys.exit(1)                        
+        sys.exit(1)
     send_prob = 0.1
     spam_prob = 0.5
     minDelay = 10
     maxDelay = 30
-    spam_delay = 3600
-    logger = None
     def __init__(self, host, user, password, group=None, run=False):
         'Constructor creates an Squirrelmail user'
-        # Check for a class logger variable and check out if none exists
+        # Check for a class logger variable and check out if none exists.
+        # This value is set in the driver script.
         if SQMail.logger == None:
             print('ERROR: No SQMail logger exists. I can\'t work this way!')
             sys.exit(1)
