@@ -2,7 +2,7 @@
 
 A tool to generate Web traffic in the form of emails exchanged among virtual agent threads with user accounts on email servers running SquirrelMail.
 
-##Files##
+## Files
 **accounts:** A folder containing Python scripts and other files used to create user accounts for virtual agents on each participating email server running SquirrelMail. See README.md in the accounts folder for more information.
 
 **spam:** A folder containing a Python script and a file with sample spam messages that can be used to generate spam email messages targeted at student participants. See README.md in the spam folder for more information.
@@ -23,14 +23,14 @@ A tool to generate Web traffic in the form of emails exchanged among virtual age
 
 **to_html.sh:** A three-line bash script that changes the default view for all SquirrelMail user accounts on an email server to HTML vs plaintext. It must be run on the email server where accounts are to be so configured.
 
-##Installation##
+## Installation
 The SQMail class (defined in sqmail.py) requires the fortune-mod package to be installed on the local system. In Ubuntu 14.04, the following command line can be used:
 
 ```sudo apt-get install fortune-mod```
 
 Otherwise, it is only necessary to copy the files and directories in this repository to a convenient location on the machine(s) that will serve as platform for generating the email exchanges.
 
-##Configuration and Use##
+## Configuration and Use
 Prior to running this application, user accounts for virtual user agents must be created on the SquirrelMail servers among which email traffic is to be exchanged. Scripts and other files needed to generate randomly-selected usernames and passwords, as well as creating accounts, are included in the accounts directory in this repository. See the README.md file in the accounts directory for details.
 
 Once the virtual user accounts have been created, run the testsqmail.py script to generate random email traffic among the virtual user agents:
